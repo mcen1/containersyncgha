@@ -1,0 +1,74 @@
+name: Download and sync container images
+on:
+  workflow_dispatch:
+    inputs:
+      OWLWEBV:
+        description: 'Owl-web container version'
+        default: '2022.03.3-640'
+        required: true
+      OWLLIVYV:
+        description: 'Owl-livy container version'
+        default: '3.2.0-2022.03.3-640'
+        required: true
+      SPARKV:
+        description: 'Spark container version'
+        default: '3.2.0-2022.03.3-640'
+        required: true
+      OWLAGENTV:
+        description: 'Owl-agent container version'
+        default: '2022.03.3-640'
+        required: true
+
+env:
+  DOCKER_REGISTRY: "gcr.io"
+  OWLWEBV: "${{ github.event.inputs.OWLWEBV }}"
+  OWLLIVYV: "${{ github.event.inputs.OWLLIVYV }}"
+  SPARKV: "${{ github.event.inputs.SPARKV }}"
+  OWLAGENTV: "${{ github.event.inputs.OWLAGENTV }}"
+  DESTINATION: "docker.artifactory.sherwin.com/collibra/owl-hadoop-cdh"
+  SOURCE_REG_USERNAME: "_json_key"
+
+
+jobs:
+  sync-images:
+    runs-on: ubuntu-latest-da
+    steps:
+    - name: Sync Owl Web
+      uses: onichandame/docker-registry-sync-action@master
+      with:
+        source_repository: ${{ env.DOCKER_REGISTRY }}/owl-hadoop-cdh/owl-web:${{ env.OWLWEBV }}
+        source_username: "${{ env.SOURCE_REG_USERNAME }}"
+        source_password: "${{ secrets.PRIVATE_REGISTRY_JSON }}"
+        target_repository: ${{ env.DESTINATION }}/owl-web:${{ env.OWLWEBV }}
+        target_username: ${{ secrets.ARTIFACTORY_USERNAME }}
+        target_password: ${{ secrets.ARTIFACTORY_API_KEY }}
+
+    - name: Sync Owl Livy
+      uses: onichandame/docker-registry-sync-action@master
+      with:
+        source_repository: ${{ env.DOCKER_REGISTRY }}/owl-hadoop-cdh/owl-livy:${{ env.OWLLIVYV }}
+        source_username: "${{ env.SOURCE_REG_USERNAME }}"
+        source_password: "${{ secrets.PRIVATE_REGISTRY_JSON }}"
+        target_repository: ${{ env.DESTINATION }}/owl-livy:${{ env.OWLLIVYV }}
+        target_username: ${{ secrets.ARTIFACTORY_USERNAME }}
+        target_password: ${{ secrets.ARTIFACTORY_API_KEY }}
+
+    - name: Sync Spark
+      uses: onichandame/docker-registry-sync-action@master
+      with:
+        source_repository: ${{ env.DOCKER_REGISTRY }}/owl-hadoop-cdh/spark:${{ env.SPARKV }}
+        source_username: "${{ env.SOURCE_REG_USERNAME }}"
+        source_password: "${{ secrets.PRIVATE_REGISTRY_JSON }}"
+        target_repository: ${{ env.DESTINATION }}/spark:${{ env.SPARKV }}
+        target_username: ${{ secrets.ARTIFACTORY_USERNAME }}
+        target_password: ${{ secrets.ARTIFACTORY_API_KEY }}
+
+    - name: Sync Owl Agent
+      uses: onichandame/docker-registry-sync-action@master
+      with:
+        source_repository: ${{ env.DOCKER_REGISTRY }}/owl-hadoop-cdh/owl-agent:${{ env.OWLAGENTV }}
+        source_username: "${{ env.SOURCE_REG_USERNAME }}"
+        source_password: "${{ secrets.PRIVATE_REGISTRY_JSON }}"
+        target_repository: ${{ env.DESTINATION }}/owl-agent:${{ env.OWLAGENTV }}
+        target_username: ${{ secrets.ARTIFACTORY_USERNAME }}
+        target_password: ${{ secrets.ARTIFACTORY_API_KEY }}
